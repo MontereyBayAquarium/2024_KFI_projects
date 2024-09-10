@@ -1,5 +1,5 @@
 
-# 2024 Kelp Forest Research Intern Porjects
+# 2024 Kelp Forest Research Intern Projects
 This is the GitHub repository for Monterey Bay Aquarium Kelp Forest Research Intern project presentatios.
 
 ## Respository structure 

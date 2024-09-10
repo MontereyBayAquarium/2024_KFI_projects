@@ -37,7 +37,7 @@ kelp_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1i9rHc8EAjMcqUqUD
 #Step 1 - process quadrat data
 
 #inspect
-View(quad_raw)
+#View(quad_raw)
 
 quad_build <- quad_raw %>%
   # Remove example first row and classifiers
@@ -74,8 +74,9 @@ quad_build <- quad_raw %>%
   pivot_longer(cols = starts_with("upc"), names_to = "upc", values_to = "species") %>%
   # Step 2: Group by all necessary columns, including the key columns
   group_by(name_of_data_enterer, site, site_type, zone, survey_date, observer_buddy,
-           transect, quadrat, substrate, species, purple_urchin_densitym2, purple_urchin_conceiledm2,
-           red_urchin_densitym2, red_urchin_conceiledm2, tegula_densitym2, pomaulax_densitym2) %>%
+           transect, quadrat, substrate,relief, risk, species, purple_urchin_densitym2, purple_urchin_conceiledm2,
+           red_urchin_densitym2, red_urchin_conceiledm2, tegula_densitym2, pomaulax_densitym2,
+           lamr, macr, macj, nerj, ptej, lsetj, eisj) %>%
   # Step 3: Calculate percent cover directly
   summarise(percent_cover = (n() / 8) * 100, .groups = 'drop') %>%
   # Step 4: Reshape back to wide format with species as columns, adding 'upc_' prefix
@@ -91,7 +92,7 @@ quad_build <- quad_raw %>%
 #Step 2 - process urchin size data
 
 #inspect
-View(urchin_raw)
+#View(urchin_raw)
 
 #build raw size fq
 urch_build <- urchin_raw %>%
@@ -142,7 +143,7 @@ urch_size_summary <- urch_expanded %>%
 #Step 3 - process swath data
 
 #inspect
-View(kelp_raw)
+#View(kelp_raw)
 
 #build kelp
 kelp_build <- kelp_raw %>%
@@ -205,7 +206,11 @@ str(kelp_density)
 quad_build_combined <- quad_build %>%
   left_join(urch_size_summary, by = c("survey_date", "site", "site_type", "zone", "transect")) %>%
   left_join(macro_density, by = c("survey_date", "site", "site_type", "zone", "transect")) %>%
-  left_join(kelp_density, by = c("survey_date", "site", "site_type", "zone", "transect"))
+  left_join(kelp_density, by = c("survey_date", "site", "site_type", "zone", "transect")) %>%
+  # Replace NA values in macro plants and macro stipes with 0 for true zeros
+  mutate(
+    density20m2_macro_plants = replace_na(density20m2_macro_plants, 0),
+    density20m2_macro_stipes = replace_na(density20m2_macro_stipes, 0)) 
 
 
 ################################################################################

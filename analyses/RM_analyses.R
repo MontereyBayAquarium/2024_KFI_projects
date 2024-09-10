@@ -34,9 +34,9 @@ recruit_build1 <- quad_build_combined %>%
   select(survey_date, site, site_type, zone, transect, quadrat, recruit_density, substrate, 
          purple_urchin_densitym2, prop_exp, gast_density, grazer_density,
          density20m2_macro_plants, density20m2_macro_stipes, substrate,
-         relief, risk) %>%
+         relief, risk)
   #drop outliers
-  filter(gast_density < 50)
+  #filter(recruit_density > 1)
 
 ################################################################################
 #step2 - plot
@@ -74,11 +74,11 @@ p1 <- ggplot(recruit_build1, aes(x = gast_density, y = recruit_density)) +
        x = "Gastropod density", 
        y = "Kelp recruit Density")+
   theme_bw() + base_theme
-p1
+#p1
 
 
 
-p2 <- ggplot(recruit_build1, aes(x = gast_density, y = purple_urchin_densitym2)) +
+p2 <- ggplot(recruit_build1, aes(x = purple_urchin_densitym2, y = recruit_density)) +
   geom_point() +
   geom_smooth(method = "nls", 
               formula = y ~ a * exp(b * x), 
@@ -88,33 +88,33 @@ p2 <- ggplot(recruit_build1, aes(x = gast_density, y = purple_urchin_densitym2))
        x = "Purple sea urchin density", 
        y = "Kelp recruit Density")+
   theme_bw() + base_theme
-p2
+#p2
 
-p3 <- ggplot(recruit_build1, aes(x = gast_density, y = grazer_density)) +
+p3 <- ggplot(recruit_build1, aes(x = grazer_density, y = recruit_density)) +
   geom_point() +
   geom_smooth(method = "nls", 
               formula = y ~ a * exp(b * x), 
               method.args = list(start = list(a = 50, b = -1)),  
               se = FALSE) +
   labs(title = "", 
-       x = "Purple sea urchin density", 
+       x = "COmbined grazer density", 
        y = "Kelp recruit Density")+
   theme_bw() + base_theme
-p3
+#p3
 
 
 
-p4 <- ggplot(recruit_build1, aes(x = gast_density, y = prop_exp)) +
+p4 <- ggplot(recruit_build1, aes(x = prop_exp, y = recruit_density)) +
   geom_point() +
   geom_smooth(method = "nls", 
               formula = y ~ a * exp(b * x), 
               method.args = list(start = list(a = 50, b = -1)),  
               se = FALSE) +
   labs(title = "", 
-       x = "Purple sea urchin density", 
+       x = "Proportion exposed sea urchins", 
        y = "Kelp recruit Density")+
   theme_bw() + base_theme
-p4
+#p4
 
 ggpubr::ggarrange(p1,p2,p3,p4)
 

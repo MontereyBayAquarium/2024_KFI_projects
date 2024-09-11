@@ -32,6 +32,9 @@ urchin_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1i9rHc8EAjMcqUq
 kelp_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1i9rHc8EAjMcqUqUDwjHtGhytUdG49VTSG9vfKmDPerQ/edit?gid=0#gid=0",
                        sheet = 3) %>% clean_names()
 
+gonad_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1Ih-hBXRtfXVMdxw5ibZnXy_dZErdcx5FfeKMSc0HEc4/edit?gid=0#gid=0") %>%
+  clean_names()
+
 
 ################################################################################
 #Step 1 - process quadrat data
@@ -213,12 +216,80 @@ quad_build_combined <- quad_build %>%
     density20m2_macro_plants = replace_na(density20m2_macro_plants, 0),
     density20m2_macro_stipes = replace_na(density20m2_macro_stipes, 0)) 
 
+################################################################################
+#Step 5 - process dissection data
+
+
+gonad_dat <- gonad_raw %>%
+  # Replace missing values and clean up variables
+  mutate(
+    institution = as.factor(institution),
+    name_of_data_enterer = as.character(name_of_data_enterer),
+    date_collected = ymd(date_collected),
+    date_fixed = ymd(date_fixed),
+    date_processed = ymd(date_processed),
+    site_number = as.factor(site_number),
+    transect = as.factor(transect),
+    treatment = as.factor(treatment),
+    sex = as.factor(sex),
+    test_height_mm = as.numeric(test_height_mm),
+    test_diameter_mm = as.numeric(test_diameter_mm),
+    animal_wet_mass_g = as.numeric(animal_wet_mass_g),
+    animal_24hr_mass_g = as.numeric(animal_24hr_mass_g),
+    gonad_mass_g = as.numeric(gonad_mass_g),
+    soft_tissue_mass_g = as.numeric(soft_tissue_mass_g),
+    notes = as.character(notes),
+    date_entered = ymd_hms(date_entered)
+  ) %>%
+  # Select focal variables
+  select(date_collected, site_number, transect, species, animal_24hr_mass_g, gonad_mass_g) %>%
+  # Filter to recovery sites
+  filter(grepl("^REC", site_number)) %>%
+  # Clean up site name
+  mutate(
+    site_number = gsub("-", "_", site_number),
+    site_number = gsub("REC_", "REC", site_number)
+  ) %>%
+  # Separate site_number into two parts and clean remaining underscores
+  separate(site_number, into = c("site_number", "site_type"), sep = "_", remove = FALSE) %>%
+  mutate(site_number = gsub("_.*", "", site_number)) %>%
+  # Fix special cases
+  mutate(site_number = case_when(
+    site_number == "REC 11" ~ "REC11",
+    site_number == "REC3" ~ "REC03",
+    site_number == "REC03INCIP" ~ "REC03",
+    site_number == "REC4=FOR" ~ "REC04",
+    site_number == "REC5=BAR" ~ "REC05",
+    site_number == "RECD12" ~ "REC12",
+    TRUE ~ site_number  # Keep the original value if no condition matches
+  ),
+  site_type = case_when(
+    site_type == "INCIIP" ~ "INCIP",
+    site_type == "INCEP" ~ "INCIP",
+    site_type == "INCID" ~ "INCIP",
+    TRUE ~ site_type  # Keep the original value if no condition matches
+  )) %>%
+  mutate(transect = toupper(transect),
+         transect = ifelse(transect == "01", NA, transect)) %>%
+  # Add small constant to gonad data
+  mutate(gonad_mass_g = gonad_mass_g + 0.000001) %>%
+  # Calculate gonad index
+  mutate(gonad_index = (gonad_mass_g / animal_24hr_mass_g) * 100) %>%
+  # Calculate mean gonad index for each site and transect
+  group_by(date_collected, site_number, site_type, transect, species) %>%
+  summarize(mean_GI = mean(gonad_index, na.rm = TRUE)) %>%
+  # Pivot data wider by species
+  pivot_wider(names_from = species, values_from = mean_GI) %>%
+  mutate(site = factor(site_number),
+         zone = factor(transect),
+         site_type = factor(site_type),
+         site_number = factor(site_number))
 
 ################################################################################
-#Step 5 - export
+#Step 6 - export
 
 # Remove all objects except 'quad_build_combined'
-rm(list = setdiff(ls(), "quad_build_combined"))
+rm(list = setdiff(ls(), c("quad_build_combined","gonad_dat")))
 
 #write to 2024 intern folder
 #output_file_path <- "/Users/jossmith/2024_KFI_projects/output/raw/recovery_data.csv"

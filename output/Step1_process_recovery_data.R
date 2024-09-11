@@ -118,7 +118,8 @@ urch_build <- urchin_raw %>%
   mutate(depth_m = ifelse(depth_unit == "Feet",depth*0.3048,depth)) %>%
   select(-depth_units, -depth_unit, -depth) %>%
   select(name_of_data_enterer, survey_date, everything()) %>%
-  mutate(size = as.numeric(as.character(size))) 
+  mutate(size = as.numeric(as.character(size))) %>%
+  filter(!is.na(size))
 
 # Expand the data based on counts
 urch_expanded <- expandRows(urch_build, "count")

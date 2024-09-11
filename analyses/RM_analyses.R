@@ -118,7 +118,7 @@ p4 <- ggplot(recruit_build1, aes(x = prop_exp, y = recruit_density)) +
 #p4
 
 p <- ggpubr::ggarrange(p1,p2,p3,p4)
-
+p
 
 ################################################################################
 #step3 - plot Figure 2
@@ -150,7 +150,7 @@ g2 <- ggplot(recruit_build1, aes(x = density20m2_macro_plants, y = recruit_densi
   theme_bw() + base_theme
 g2
 
-
+ggpubr::ggarrange(g1, g2)
 
 
 ################################################################################

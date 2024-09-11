@@ -159,7 +159,7 @@ h2 <- ggplot(quad_build_combined1 %>%
   # Add vertical line for the median per facet
   geom_vline(data = medians_df, aes(xintercept = median_size), color = "black", linetype = "solid", size = 1) +
   # Labels
-  labs(title = "", 
+  labs(title = "Size distribution", 
        x = "Purple sea urchin size (cm)", 
        y = "Frequency") +
   # Facet by renamed tertiles
@@ -184,13 +184,13 @@ h3 <- ggplot(quad_build_combined1 %>%
                                              labels = c("Low rugosity", "Medium rugosity", "High rugosity"))),
              aes(x = prop_exp, fill = risk_tertiles)) +  # Map fill to risk_tertiles
   # Add horizontal boxplot
-  geom_boxplot(aes(group = risk_tertiles), width = 0.15, position = position_nudge(y = 1.9), color = "black", alpha = 0.6) +
+  #geom_boxplot(aes(group = risk_tertiles), width = 0.15, position = position_nudge(y = 1.9), color = "black", alpha = 0.6) +
   # Add density plot
   geom_density(alpha = 0.7) +  # Use fill based on risk_tertiles
   # Add vertical line for the median per facet
   geom_vline(data = medians_df, aes(xintercept = median_size), color = "black", linetype = "solid", size = 1) +
   # Labels
-  labs(title = "", 
+  labs(title = "Behavior", 
        x = "Proportion exposed", 
        y = "Frequency") +
   # Facet by renamed tertiles

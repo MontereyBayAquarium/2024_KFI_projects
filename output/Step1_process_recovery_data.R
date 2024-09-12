@@ -19,7 +19,7 @@
 rm(list=ls())
 
 librarian::shelf(tidyverse,here, janitor, googlesheets4, lubridate, splitstackshape)
-gs4_auth()
+#gs4_auth()
 
 #read data
 quad_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1i9rHc8EAjMcqUqUDwjHtGhytUdG49VTSG9vfKmDPerQ/edit?gid=0#gid=0",
@@ -40,7 +40,7 @@ gonad_raw <- read_sheet("https://docs.google.com/spreadsheets/d/1Ih-hBXRtfXVMdxw
 #Step 1 - process quadrat data
 
 #inspect
-View(quad_raw)
+#View(quad_raw)
 
 quad_build <- quad_raw %>%
   # Remove example first row and classifiers
@@ -143,8 +143,6 @@ urch_size_summary <- urch_expanded %>%
   ) %>% clean_names
 
 
-
-
 ################################################################################
 #Step 3 - process swath data
 
@@ -172,6 +170,7 @@ kelp_build <- kelp_raw %>%
   #convert feet to meters
   mutate(depth_m = ifelse(depth_unit == "Feet",depth*0.3048,depth)) %>%
   select(-depth_units, -depth_unit, -depth)
+
 #calculate macro density
 macro_density <- kelp_build %>% filter(species == "MACPYR") %>%
   #macro is not subsampled

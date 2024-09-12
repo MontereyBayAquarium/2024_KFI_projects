@@ -105,22 +105,52 @@ custom_labels <- c(
   prop_exp = "Proportion of exposed urchins \n(per m²)"
 )
 
-# Plot using ggplot with custom x-axis labels below the plot and centered
+
+
+# Extract p-values and coefficients from the model summary
+summary_info <- summary(glm_model)
+
+# Create a data frame for coefficients and p-values
+model_terms <- data.frame(
+  term = rownames(summary_info$coefficients),
+  estimate = summary_info$coefficients[, "Estimate"],
+  p_value = summary_info$coefficients[, "Pr(>|z|)"]
+)
+
+# Filter to only include the terms we're plotting
+model_terms <- model_terms[model_terms$term %in% c("gast_density", "purple_urchin_densitym2", "prop_exp"), ]
+
+# Format the coefficient and p-value for each term
+model_terms$label <- paste0("Coefficient: ", round(model_terms$estimate, 3),
+                            "\nP-value: ", ifelse(model_terms$p_value < 0.001, "< 0.001", round(model_terms$p_value, 3)))
+
+# Map the terms to match the custom labels in the plot
+model_terms$term <- factor(model_terms$term, 
+                           levels = c("gast_density", "purple_urchin_densitym2", "prop_exp"))
+
+
+# Plot using ggplot with p-values and coefficients in each facet
 p <- ggplot(pred_combined, aes(x = x, y = predicted)) +
   geom_line() +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
-  facet_wrap(~ term, scales = "free_x", labeller = as_labeller(custom_labels), strip.position = "bottom") +  # Move labels below
+  facet_wrap(~ term, scales = "free", labeller = as_labeller(custom_labels), strip.position = "bottom") +  # Move labels below
   labs(title = "",
        x = "",
        y = "Predicted kelp recruit density \n(no. per m²)") +
   theme_bw() + 
   theme(strip.placement = "outside",  # Ensure labels are placed outside
         strip.background = element_blank(),  # Remove background of strip
-        strip.text.x = element_text(hjust = 0.5, size = 10, face = "plain")) +  # Center facet labels
+        strip.text.x = element_text(hjust = 0.5, size = 10, face = "plain")) +  # Center and remove bold
+  geom_text(data = model_terms, aes(x = Inf, y = Inf, label = label),
+            hjust = 1.1, vjust = 1.1, size = 3) +  # Add the labels for p-value and coefficient
   base_theme
+
+
 
 ggsave(p, filename = file.path(figdir, "Fig1_glm_model.png"), 
        width =7, height = 5, units = "in", dpi = 600, bg = "white")
+
+
 
 
 ################################################################################

@@ -7,7 +7,7 @@
 
 ################################################################################
 #load packages and set directories
-librarian::shelf(tidyverse, here, ggeffects)
+librarian::shelf(tidyverse, here, ggeffects, RColorBrewer, ggpubr)
 
 figdir <- here::here("figures","RM_figures")
 
@@ -175,15 +175,22 @@ base_theme2 <-  theme(axis.text=element_text(size=9, color = "black"),
                      strip.text = element_text(size=8, face = "bold",color = "black", hjust=0),
                      strip.background = element_blank())
 
-# Single bubble plot with plant density on the x-axis, bubble size scaled to stipe density, forestgreen fill, and black outline
-g <- ggplot(recruit_build1, aes(x = density20m2_macro_plants, y = recruit_density, size = density20m2_macro_stipes)) +
-  geom_jitter(alpha = 0.6, width = 0.3, height = 0.1, color = "black", fill = "forestgreen", shape = 21) +  # Add jitter, black outline, and forestgreen fill
+
+# Bubble plot with plant density on the x-axis, bubble size scaled to stipe density, and color corresponding to substrate type using Dark2 palette
+g <- ggplot(recruit_build1, aes(x = density20m2_macro_plants, y = recruit_density, size = density20m2_macro_stipes, fill = substrate)) +
+  geom_jitter(alpha = 0.9, width = 0.3, height = 0.1, color = "black", shape = 21) +  # Add jitter with black outline
+  scale_fill_brewer(palette = "Dark2") +  # Use the Dark2 color palette for substrate
   labs(title = "",
        x = "Adult kelp plant density \n(n. plants per 20m²)",
        y = "Kelp recruit density",
-       size = "Stipes per plant") +  # Updated legend title
+       size = "Stipes per plant",
+       fill = "Substrate Type") +  # Updated legend title for substrate type
   theme_bw() + base_theme2
+
+# Display the plot
 g
+
+
 
 #ggsave(g, filename = file.path(figdir, "Fig2_bubble_plot.png"), 
  #     width =6, height = 5, units = "in", dpi = 600, bg = "white")
@@ -198,76 +205,41 @@ m1 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = substrate, 
   theme_minimal() +
   labs(x = "Substrate Type", y = "Recruit Density", title = "Recruit Density by Substrate Type") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme_bw() + base_theme
+  theme_bw() + base_theme2
 m1
 
 
-
-
-
-# Scatter plot of recruit_density as a function of relief with a curve over the top
-m_recruit_density_top <- ggplot(recruit_build1, aes(x = relief, y = recruit_density)) +
-  
-  # Scatter plot of the points
-  geom_point(color = "navyblue", alpha = 0.6) +
-  
-  # Add a quantile regression line for the upper quantile (0.95 for example)
-  geom_smooth(method = "rq", formula = y ~ x, method.args = list(tau = 0.95), 
-              se = FALSE, color = "navyblue", fill = "navyblue", alpha = 0.3) +
-  
-  labs(title = "Recruit Density as a Function of Relief (Upper Bound Curve)",
+# Density plot
+m2 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = relief, y = recruit_density)) +
+  geom_hex(bins = 30) +  # Hexagonal binning
+  scale_fill_gradient(low = "navyblue", high = "indianred") +  # Color scale for density
+  labs(title = "",
        x = "Relief",
        y = "Recruit Density") +
-  theme_bw()
-
-# Plot the result
-m_recruit_density_top
+  theme_bw() + base_theme2
+m2
 
 
 
+# Density plot
+m3 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = risk, y = recruit_density)) +
+  geom_hex(bins = 30) +  # Hexagonal binning
+  scale_fill_gradient(low = "navyblue", high = "indianred") +  # Color scale for density
+  labs(title = "",
+       x = "Rugosity",
+       y = "") +
+  theme_bw() + base_theme2
+m3
+
+m <- ggarrange(m2, m3, common.legend = TRUE)
 
 
-
-################################################################################
-#step3 - plot Figure 3
-
-
-m1 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = substrate, y = recruit_density)) +
-  geom_boxplot() +
-  theme_minimal() +
-  labs(x = "Substrate Type", y = "Recruit Density", title = "Recruit Density by Substrate Type") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme_bw() + base_theme
-m1
+#ggsave(m1, filename = file.path(figdir, "Fig3_boxplot.png"), 
+ #    width =6, height = 5, units = "in", dpi = 600, bg = "white")
 
 
-
-
-
-# Scatter plot of recruit_density as a function of relief with a curve over the top
-m_recruit_density_top <- ggplot(recruit_build1, aes(x = relief, y = recruit_density)) +
-  
-  # Scatter plot of the points
-  geom_point(color = "navyblue", alpha = 0.6) +
-  
-  # Add a quantile regression line for the upper quantile (0.95 for example)
-  geom_smooth(method = "rq", formula = y ~ x, method.args = list(tau = 0.95), 
-              se = FALSE, color = "navyblue", fill = "navyblue", alpha = 0.3) +
-  
-  labs(title = "Recruit Density as a Function of Relief (Upper Bound Curve)",
-       x = "Relief",
-       y = "Recruit Density") +
-  theme_bw()
-
-# Plot the result
-m_recruit_density_top
-
-
-
-
-
-
-
+#ggsave(m, filename = file.path(figdir, "Fig4_hex_plot.png"), 
+ #      width =7, height = 4, units = "in", dpi = 600, bg = "white")
 
 
 

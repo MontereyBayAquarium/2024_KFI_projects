@@ -180,6 +180,7 @@ macro_density <- kelp_build %>% filter(species == "MACPYR") %>%
   summarize(density20m2_macro_plants = n(),
             density20m2_macro_stipes = mean(stipe_counts_macrocystis_only)
   )
+
 kelp_density <- kelp_build %>% filter(species != "MACPYR") %>%
   select(-stipe_counts_macrocystis_only) %>%
   #######ACCOUNT FOR SUMSAMPLE HERE############
@@ -275,6 +276,7 @@ gonad_dat <- gonad_raw %>%
   mutate(gonad_mass_g = gonad_mass_g + 0.000001) %>%
   # Calculate gonad index
   mutate(gonad_index = (gonad_mass_g / animal_24hr_mass_g) * 100) %>%
+  filter(gonad_index < 100)%>%
   # Calculate mean gonad index for each site and transect
   group_by(date_collected, site_number, site_type, transect, species) %>%
   summarize(mean_GI = mean(gonad_index, na.rm = TRUE)) %>%

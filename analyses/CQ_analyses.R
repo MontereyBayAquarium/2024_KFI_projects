@@ -59,10 +59,10 @@ head(quad_build_combined1)
 ################################################################################
 #Plot figure 1
 
-base_theme <-  theme(axis.text=element_text(size=9, color = "black"),
-                     axis.title=element_text(size=10,color = "black"),
-                     plot.tag=element_text(size=8,color = "black"),
-                     plot.title=element_text(size=9,color = "black", face = "bold"),
+base_theme <-  theme(axis.text=element_text(size=11, color = "black"),
+                     axis.title=element_text(size=12,color = "black"),
+                     plot.tag=element_text(size=10,color = "black"),
+                     plot.title=element_text(size=11,color = "black", face = "bold"),
                      # Gridlines
                      panel.grid.major = element_blank(), 
                      panel.grid.minor = element_blank(),
@@ -72,12 +72,12 @@ base_theme <-  theme(axis.text=element_text(size=9, color = "black"),
                      legend.key.size = unit(0.4, "cm"), 
                      #legend.key = element_rect(fill = "white"), # Set it to transparent
                      legend.spacing.y = unit(0.4, "cm"),  
-                     legend.text=element_text(size=9,color = "black"),
-                     legend.title=element_text(size=10,color = "black"),
+                     legend.text=element_text(size=11,color = "black"),
+                     legend.title=element_text(size=12,color = "black"),
                      #legend.key.height = unit(0.1, "cm"),
                      #legend.background = element_rect(fill=alpha('blue', 0)),
                      #facets
-                     strip.text = element_text(size=8, face = "bold",color = "black", hjust=0),
+                     strip.text = element_text(size=10, face = "bold",color = "black", hjust=0),
                      strip.background = element_blank())
 
 
@@ -261,9 +261,6 @@ h
 
 #ggsave(h, filename = file.path(figdir, "Figs3_and_4.png"), 
  #      width =7, height = 5, units = "in", dpi = 600, bg = "white")
-
-
-
 
 
 

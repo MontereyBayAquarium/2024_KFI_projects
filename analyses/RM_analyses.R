@@ -50,7 +50,7 @@ glm_model <- glm(recruit_density ~ gast_density + purple_urchin_densitym2 + prop
 
 #interaction was non-sig so dop
 # Fit the GLM model
-glm_model <- glm(recruit_density ~ gast_density + purple_urchin_densitym2 + prop_exp,
+glm_model <- glm(recruit_density ~ prop_exp + gast_density + purple_urchin_densitym2,
                  data = recruit_build1, family = "poisson")
 
 # Summarize the model
@@ -58,7 +58,7 @@ summary(glm_model)
 
 #plot the output
 
-base_theme <-  theme(axis.text=element_text(size=9, color = "black"),
+base_theme <-  theme(axis.text=element_text(size=11, color = "black"),
                      axis.title=element_text(size=10,color = "black"),
                      plot.tag=element_text(size=8,color = "black"),
                      plot.title=element_text(size=9,color = "black", face = "bold"),
@@ -76,26 +76,26 @@ base_theme <-  theme(axis.text=element_text(size=9, color = "black"),
                      #legend.key.height = unit(0.1, "cm"),
                      #legend.background = element_rect(fill=alpha('blue', 0)),
                      #facets
-                     strip.text = element_text(size=8, face = "bold",color = "black", hjust=0),
+                     strip.text = element_text(size=10, face = "bold",color = "black", hjust=0),
                      strip.background = element_blank())
 
 
 # Generate predictions using ggpredict for each term
+pred_prop_exp <- ggpredict(glm_model, terms = "prop_exp")
 pred_gast <- ggpredict(glm_model, terms = "gast_density")
 pred_urchin <- ggpredict(glm_model, terms = "purple_urchin_densitym2")
-pred_prop_exp <- ggpredict(glm_model, terms = "prop_exp")
 
 
 # Combine the predictions into one data frame and add a term column for faceting
 pred_combined <- rbind(
+  data.frame(pred_prop_exp, term = "prop_exp"),
   data.frame(pred_gast, term = "gast_density"),
-  data.frame(pred_urchin, term = "purple_urchin_densitym2"),
-  data.frame(pred_prop_exp, term = "prop_exp")
+  data.frame(pred_urchin, term = "purple_urchin_densitym2")
 )
 
 # Modify the order of the 'term' factor
 pred_combined$term <- factor(pred_combined$term, 
-                             levels = c("gast_density", "purple_urchin_densitym2", "prop_exp"))
+                             levels = c("prop_exp", "gast_density", "purple_urchin_densitym2"))
 
 
 # Define custom labels for each predictor
@@ -118,7 +118,7 @@ model_terms <- data.frame(
 )
 
 # Filter to only include the terms we're plotting
-model_terms <- model_terms[model_terms$term %in% c("gast_density", "purple_urchin_densitym2", "prop_exp"), ]
+model_terms <- model_terms[model_terms$term %in% c("prop_exp", "gast_density", "purple_urchin_densitym2"), ]
 
 # Format the coefficient and p-value for each term
 model_terms$label <- paste0("Coefficient: ", round(model_terms$estimate, 3),
@@ -126,7 +126,7 @@ model_terms$label <- paste0("Coefficient: ", round(model_terms$estimate, 3),
 
 # Map the terms to match the custom labels in the plot
 model_terms$term <- factor(model_terms$term, 
-                           levels = c("gast_density", "purple_urchin_densitym2", "prop_exp"))
+                           levels = c("prop_exp", "gast_density", "purple_urchin_densitym2"))
 
 
 # Plot using ggplot with p-values and coefficients in each facet
@@ -154,10 +154,10 @@ p
 ################################################################################
 #step3 - plot Figure 2
 
-base_theme2 <-  theme(axis.text=element_text(size=9, color = "black"),
-                     axis.title=element_text(size=10,color = "black"),
+base_theme2 <-  theme(axis.text=element_text(size=10, color = "black"),
+                     axis.title=element_text(size=11,color = "black"),
                      plot.tag=element_text(size=8,color = "black"),
-                     plot.title=element_text(size=9,color = "black", face = "bold"),
+                     plot.title=element_text(size=10,color = "black", face = "bold"),
                      # Gridlines
                      panel.grid.major = element_blank(), 
                      panel.grid.minor = element_blank(),
@@ -167,12 +167,12 @@ base_theme2 <-  theme(axis.text=element_text(size=9, color = "black"),
                      legend.key.size = unit(0.4, "cm"), 
                      #legend.key = element_rect(fill = "white"), # Set it to transparent
                      legend.spacing.y = unit(0.4, "cm"),  
-                     legend.text=element_text(size=8,color = "black"),
-                     legend.title=element_text(size=8,color = "black"),
+                     legend.text=element_text(size=10,color = "black"),
+                     legend.title=element_text(size=10,color = "black"),
                      #legend.key.height = unit(0.1, "cm"),
                      #legend.background = element_rect(fill=alpha('blue', 0)),
                      #facets
-                     strip.text = element_text(size=8, face = "bold",color = "black", hjust=0),
+                     strip.text = element_text(size=10, face = "bold",color = "black", hjust=0),
                      strip.background = element_blank())
 
 
@@ -192,54 +192,72 @@ g
 
 
 
-#ggsave(g, filename = file.path(figdir, "Fig2_bubble_plot.png"), 
- #     width =6, height = 5, units = "in", dpi = 600, bg = "white")
+ggsave(g, filename = file.path(figdir, "Fig2_bubble_plot.png"), 
+      width =6, height = 5, units = "in", dpi = 600, bg = "white")
 
 
 ################################################################################
 #step3 - plot Figure 3
 
 
-m1 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = substrate, y = recruit_density)) +
+# Calculate sample size for each substrate type
+sample_size <- recruit_build1 %>% 
+  filter(recruit_density > 0) %>%
+  group_by(substrate) %>%
+  summarise(n = n())
+
+m1 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = substrate, y = recruit_density, fill = substrate)) +
   geom_boxplot() +
   theme_minimal() +
+  scale_fill_brewer(palette = "Dark2", guide = "none") +  # Apply Dark2 palette and remove legend
   labs(x = "Substrate Type", y = "Recruit Density", title = "Recruit Density by Substrate Type") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme_bw() + base_theme2
+  theme_bw() + 
+  base_theme2 +
+  geom_text(data = sample_size, aes(x = substrate, y = max(recruit_build1$recruit_density) + 1, label = paste0("n=", n)), 
+            vjust = -0.5)  # Adjust the position of the sample size labels
+
 m1
 
+# Adjusted plots with common scale
+fill_scale <- scale_fill_gradient(
+  low = "navyblue", 
+  high = "indianred", 
+  name = "No. \nquadrats", 
+  breaks = scales::pretty_breaks(n = 4),  # Define the number of breaks
+  labels = scales::label_number(accuracy = 1)  # Round to nearest integer
+)
 
-# Density plot
+# First density plot
 m2 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = relief, y = recruit_density)) +
   geom_hex(bins = 30) +  # Hexagonal binning
-  scale_fill_gradient(low = "navyblue", high = "indianred") +  # Color scale for density
-  labs(title = "",
-       x = "Relief",
-       y = "Recruit Density") +
+  fill_scale +  # Apply the common scale
+  labs(title = "", x = "Relief", y = "Recruit Density") +
   theme_bw() + base_theme2
-m2
 
-
-
-# Density plot
+# Second density plot
 m3 <- ggplot(recruit_build1 %>% filter(recruit_density > 0), aes(x = risk, y = recruit_density)) +
   geom_hex(bins = 30) +  # Hexagonal binning
-  scale_fill_gradient(low = "navyblue", high = "indianred") +  # Color scale for density
-  labs(title = "",
-       x = "Rugosity",
-       y = "") +
+  fill_scale +  # Apply the common scale
+  labs(title = "", x = "Rugosity", y = "") +
   theme_bw() + base_theme2
-m3
 
-m <- ggarrange(m2, m3, common.legend = TRUE)
+# Arrange the plots with a common legend, legend placed at the bottom
+m <- ggarrange(m2, m3, common.legend = TRUE, legend = "bottom")
 
+# Optionally adjust the size of the legend elements to prevent smushing
+m <- m + theme(legend.key.size = unit(1.5, 'cm'),   # Adjust key size
+               legend.text = element_text(size = 10))  # Adjust text size
+m
 
 #ggsave(m1, filename = file.path(figdir, "Fig3_boxplot.png"), 
  #    width =6, height = 5, units = "in", dpi = 600, bg = "white")
 
-
 #ggsave(m, filename = file.path(figdir, "Fig4_hex_plot.png"), 
- #      width =7, height = 4, units = "in", dpi = 600, bg = "white")
+ #    width =7, height = 4, units = "in", dpi = 600, bg = "white")
+
+
+
 
 
 

@@ -265,7 +265,61 @@ h
 
 
 
+################################################################################
+#Relief
 
+
+# Calculate the tertiles (33rd and 66th percentiles) for relief
+tertiles_relief <- quantile(quad_build_combined1$relief, probs = c(0.33, 0.66), na.rm = TRUE)
+
+# Add a new column to indicate the tertile for relief
+quad_build_combined1$relief_tertiles <- cut(quad_build_combined1$relief,
+                                            breaks = c(-Inf, tertiles_relief[1], tertiles_relief[2], Inf),
+                                            labels = c("1st Tertile", "2nd Tertile", "3rd Tertile"),
+                                            include.lowest = TRUE)
+
+# Modify plot h2 for relief
+h2_relief <- ggplot(quad_build_combined1 %>% 
+                      filter(!is.na(relief_tertiles)) %>% 
+                      mutate(relief_tertiles = factor(relief_tertiles, 
+                                                      levels = c("1st Tertile", "2nd Tertile", "3rd Tertile"), 
+                                                      labels = c("Low relief", "Medium relief", "High relief"))),
+                    aes(x = size_purple_mean_size_cm, fill = relief_tertiles)) +  
+  geom_boxplot(aes(group = relief_tertiles), width = 0.15, position = position_nudge(y = 0.4), color = "black", alpha = 0.6) +
+  geom_density(alpha = 0.7) +
+  geom_vline(data = medians_df, aes(xintercept = median_size), color = "black", linetype = "solid", size = 1) +
+  labs(title = "Size distribution", 
+       x = "Purple sea urchin size (cm)", 
+       y = "Frequency") +
+  facet_wrap(~ relief_tertiles, ncol = 1) +
+  scale_x_continuous(limits = c(0, 7)) +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_bw() + base_theme + theme(legend.position = "none")
+
+# Modify plot h3 for relief
+h3_relief <- ggplot(quad_build_combined1 %>% 
+                      filter(!is.na(relief_tertiles)) %>% 
+                      mutate(relief_tertiles = factor(relief_tertiles, 
+                                                      levels = c("1st Tertile", "2nd Tertile", "3rd Tertile"), 
+                                                      labels = c("Low relief", "Medium relief", "High relief"))),
+                    aes(x = prop_exp, fill = relief_tertiles)) +  
+  geom_density(alpha = 0.7) +  
+  geom_vline(data = medians_df, aes(xintercept = median_size), color = "black", linetype = "solid", size = 1) +
+  labs(title = "Behavior", 
+       x = "Proportion exposed", 
+       y = "Frequency") +
+  facet_wrap(~ relief_tertiles, ncol = 1) +
+  scale_x_continuous(limits = c(0, 1)) +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_bw() + base_theme + theme(legend.position = "none")
+
+# Combined figure
+h_relief <- ggpubr::ggarrange(h2_relief, h3_relief)
+h_relief
+
+# Save the combined figure if needed
+ ggsave(h_relief, filename = file.path(figdir, "Fig5_relief.png"), 
+        width = 7, height = 5, units = "in", dpi = 600, bg = "white")
 
 
 
